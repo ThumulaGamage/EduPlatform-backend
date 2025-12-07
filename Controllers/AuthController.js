@@ -1,15 +1,20 @@
+// Controllers/AuthController.js
 const User = require("../Models/UserModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Secret key for JWT (put this in .env file in production)
-const JWT_SECRET = process.env.JWT_SECRET || "11bcc2adea6cd9b51b4cead027ad9505c7f72df7498b522fe1f399fdb7aba87b2d21e22ced88a9f72fb95890564f15b79bab8d4f2068b945aa5484ad9d95ac3b";
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key_here_change_in_production";
 
 // REGISTER new user
 const register = async (req, res) => {
-    const { name, gmail, password, age, address } = req.body;
+    const { name, gmail, password, age, address, role } = req.body;
 
     try {
+        // Validate role
+        if (role && !['student', 'teacher'].includes(role)) {
+            return res.status(400).json({ message: "Invalid role. Must be 'student' or 'teacher'" });
+        }
+
         // Check if user already exists
         const existingUser = await User.findOne({ gmail });
         if (existingUser) {
@@ -25,14 +30,15 @@ const register = async (req, res) => {
             gmail,
             password: hashedPassword,
             age,
-            address
+            address,
+            role: role || 'student' // Default to student if not provided
         });
 
         await user.save();
 
         // Create JWT token
         const token = jwt.sign(
-            { id: user._id, gmail: user.gmail },
+            { id: user._id, gmail: user.gmail, role: user.role },
             JWT_SECRET,
             { expiresIn: "24h" }
         );
@@ -45,7 +51,8 @@ const register = async (req, res) => {
                 name: user.name,
                 gmail: user.gmail,
                 age: user.age,
-                address: user.address
+                address: user.address,
+                role: user.role
             }
         });
 
@@ -74,7 +81,7 @@ const login = async (req, res) => {
 
         // Create JWT token
         const token = jwt.sign(
-            { id: user._id, gmail: user.gmail },
+            { id: user._id, gmail: user.gmail, role: user.role },
             JWT_SECRET,
             { expiresIn: "24h" }
         );
@@ -87,7 +94,8 @@ const login = async (req, res) => {
                 name: user.name,
                 gmail: user.gmail,
                 age: user.age,
-                address: user.address
+                address: user.address,
+                role: user.role
             }
         });
 
@@ -99,7 +107,7 @@ const login = async (req, res) => {
 
 // VERIFY token (middleware)
 const verifyToken = (req, res, next) => {
-    const token = req.headers.authorization?.split(" ")[1]; // Bearer TOKEN
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
         return res.status(401).json({ message: "No token provided" });
@@ -108,14 +116,42 @@ const verifyToken = (req, res, next) => {
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.userId = decoded.id;
+        req.userRole = decoded.role;
         next();
     } catch (err) {
         return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
 
+// Middleware to check if user is admin
+const isAdmin = (req, res, next) => {
+    if (req.userRole !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Admin only." });
+    }
+    next();
+};
+
+// Middleware to check if user is teacher
+const isTeacher = (req, res, next) => {
+    if (req.userRole !== 'teacher' && req.userRole !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Teacher only." });
+    }
+    next();
+};
+
+// Middleware to check if user is student
+const isStudent = (req, res, next) => {
+    if (req.userRole !== 'student' && req.userRole !== 'admin') {
+        return res.status(403).json({ message: "Access denied. Student only." });
+    }
+    next();
+};
+
 module.exports = {
     register,
     login,
-    verifyToken
+    verifyToken,
+    isAdmin,
+    isTeacher,
+    isStudent
 };
