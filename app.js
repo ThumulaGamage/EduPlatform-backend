@@ -9,6 +9,7 @@ const authRouter = require("./Routes/AuthRoutes");
 const courseRouter = require("./Routes/CourseRoutes");
 const enrollmentRouter = require("./Routes/EnrollmentRoutes");
 const teacherRouter = require("./Routes/TeacherRoutes");
+const messageRouter = require("./Routes/MessageRoutes");
 
 const app = express();
 
@@ -25,12 +26,13 @@ app.use((req, res, next) => {
     next();
 });
 
-// Routes - THESE ARE THE CRITICAL LINES
+// Routes
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/courses", courseRouter);
 app.use("/enrollments", enrollmentRouter);
 app.use("/teachers", teacherRouter);
+app.use("/messages", messageRouter);
 
 // Default route
 app.get("/", (req, res) => {
@@ -47,8 +49,7 @@ mongoose.connect(MONGODB_URI)
         app.listen(PORT, () => {
             console.log(`✅ Server running on port ${PORT}`);
             console.log(`✅ Accepting requests from: ${process.env.FRONTEND_URL || 'http://localhost:8080'}`);
-            console.log(`✅ Test it: http://localhost:${PORT}`);
-            console.log('\n🎯 All routes loaded successfully!\n');
+            console.log(`✅ Test it: http://localhost:${PORT}\n`);
         });
     })
     .catch((err) => {

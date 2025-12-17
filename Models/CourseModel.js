@@ -1,6 +1,25 @@
-// Models/CourseModel.js
+// Models/CourseModel.js - UPDATED with detailed content fields
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+
+const LessonSchema = new Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        default: ""
+    },
+    duration: {
+        type: Number, // in minutes
+        default: 0
+    },
+    order: {
+        type: Number,
+        required: true
+    }
+});
 
 const CourseSchema = new Schema({
     title: {
@@ -37,6 +56,14 @@ const CourseSchema = new Schema({
         type: Number,
         default: 0
     },
+    // NEW FIELDS FOR DETAILED CONTENT
+    learningObjectives: [{
+        type: String
+    }],
+    requirements: [{
+        type: String
+    }],
+    lessons: [LessonSchema],
     createdAt: {
         type: Date,
         default: Date.now

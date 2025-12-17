@@ -1,4 +1,4 @@
-// Controllers/CourseController.js - UPDATED to allow teachers to manage their courses
+// Controllers/CourseController.js - UPDATED to return all fields
 const Course = require("../Models/CourseModel");
 const User = require("../Models/UserModel");
 
@@ -32,19 +32,36 @@ const getCoursesByTeacher = async (req, res) => {
     }
 };
 
-// GET single course by ID
+// GET single course by ID - RETURNS ALL FIELDS
 const getCourseById = async (req, res) => {
     const { id } = req.params;
 
     try {
         const course = await Course.findById(id)
-            .populate('teacherId', 'name gmail age');
+            .populate('teacherId', 'name gmail age address');
 
         if (!course) {
             return res.status(404).json({ message: "Course not found" });
         }
 
-        return res.status(200).json({ course });
+        // Ensure all fields are returned including new content fields
+        const courseData = {
+            _id: course._id,
+            title: course.title,
+            description: course.description,
+            teacherId: course.teacherId,
+            duration: course.duration,
+            level: course.level,
+            category: course.category,
+            image: course.image || '',
+            totalLessons: course.totalLessons || 0,
+            learningObjectives: course.learningObjectives || [],
+            requirements: course.requirements || [],
+            lessons: course.lessons || [],
+            createdAt: course.createdAt
+        };
+
+        return res.status(200).json({ course: courseData });
     } catch (err) {
         console.log(err);
         return res.status(500).json({ error: "Server error" });
@@ -53,7 +70,19 @@ const getCourseById = async (req, res) => {
 
 // CREATE new course (Teacher can create for themselves, Admin can create for any teacher)
 const createCourse = async (req, res) => {
-    const { title, description, teacherId, duration, level, category, image, totalLessons } = req.body;
+    const { 
+        title, 
+        description, 
+        teacherId, 
+        duration, 
+        level, 
+        category, 
+        image, 
+        totalLessons,
+        learningObjectives,
+        requirements,
+        lessons
+    } = req.body;
 
     try {
         // Determine the teacher ID
@@ -80,7 +109,10 @@ const createCourse = async (req, res) => {
             level,
             category,
             image: image || '',
-            totalLessons: totalLessons || 0
+            totalLessons: totalLessons || 0,
+            learningObjectives: learningObjectives || [],
+            requirements: requirements || [],
+            lessons: lessons || []
         });
 
         await course.save();
@@ -98,7 +130,19 @@ const createCourse = async (req, res) => {
 // UPDATE course (Teacher can update their own, Admin can update any)
 const updateCourse = async (req, res) => {
     const { id } = req.params;
-    const { title, description, teacherId, duration, level, category, image, totalLessons } = req.body;
+    const { 
+        title, 
+        description, 
+        teacherId, 
+        duration, 
+        level, 
+        category, 
+        image, 
+        totalLessons,
+        learningObjectives,
+        requirements,
+        lessons
+    } = req.body;
 
     try {
         // Find the course first
@@ -132,7 +176,10 @@ const updateCourse = async (req, res) => {
             level,
             category,
             image,
-            totalLessons
+            totalLessons: totalLessons !== undefined ? totalLessons : existingCourse.totalLessons,
+            learningObjectives: learningObjectives !== undefined ? learningObjectives : existingCourse.learningObjectives,
+            requirements: requirements !== undefined ? requirements : existingCourse.requirements,
+            lessons: lessons !== undefined ? lessons : existingCourse.lessons
         };
 
         // Only update teacherId if user is admin and it's provided
@@ -146,9 +193,14 @@ const updateCourse = async (req, res) => {
             { new: true }
         ).populate('teacherId', 'name gmail');
 
+        console.log('Course updated successfully:', course._id);
+        console.log('Learning objectives:', course.learningObjectives?.length || 0);
+        console.log('Requirements:', course.requirements?.length || 0);
+        console.log('Lessons:', course.lessons?.length || 0);
+
         return res.status(200).json({ course });
     } catch (err) {
-        console.log(err);
+        console.log('Error updating course:', err);
         return res.status(500).json({ error: "Server error" });
     }
 };
