@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 
 // Import routes
 const userRouter = require("./Routes/UserRoutes");
@@ -10,6 +11,8 @@ const courseRouter = require("./Routes/CourseRoutes");
 const enrollmentRouter = require("./Routes/EnrollmentRoutes");
 const teacherRouter = require("./Routes/TeacherRoutes");
 const messageRouter = require("./Routes/MessageRoutes");
+const reviewRouter = require("./Routes/ReviewRoutes");
+const materialRouter = require("./Routes/MaterialRoutes");
 
 const app = express();
 
@@ -19,6 +22,9 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // LOG ALL INCOMING REQUESTS (for debugging)
 app.use((req, res, next) => {
@@ -33,6 +39,8 @@ app.use("/courses", courseRouter);
 app.use("/enrollments", enrollmentRouter);
 app.use("/teachers", teacherRouter);
 app.use("/messages", messageRouter);
+app.use("/reviews", reviewRouter);
+app.use("/materials", materialRouter);
 
 // Default route
 app.get("/", (req, res) => {

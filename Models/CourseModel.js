@@ -1,4 +1,4 @@
-// Models/CourseModel.js - UPDATED with detailed content fields
+// Models/CourseModel.js - UPDATED with Cloudinary fields
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -21,6 +21,42 @@ const LessonSchema = new Schema({
     }
 });
 
+const MaterialSchema = new Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    type: {
+        type: String,
+        enum: ['pdf', 'video', 'document', 'image', 'other'],
+        required: true
+    },
+    url: {
+        type: String,
+        required: true
+    },
+    filename: {
+        type: String,
+        required: true
+    },
+    filesize: {
+        type: Number, // in bytes
+        default: 0
+    },
+    cloudinaryId: {
+        type: String, // Cloudinary public_id for deletion
+        default: ""
+    },
+    cloudinaryResourceType: {
+        type: String, // 'image', 'video', 'raw'
+        default: "raw"
+    },
+    uploadedAt: {
+        type: Date,
+        default: Date.now
+    }
+});
+
 const CourseSchema = new Schema({
     title: {
         type: String,
@@ -36,7 +72,7 @@ const CourseSchema = new Schema({
         required: true
     },
     duration: {
-        type: String, // e.g., "8 weeks", "3 months"
+        type: String,
         required: true,
     },
     level: {
@@ -49,14 +85,13 @@ const CourseSchema = new Schema({
         required: true
     },
     image: {
-        type: String, // URL to course image
+        type: String,
         default: ''
     },
     totalLessons: {
         type: Number,
         default: 0
     },
-    // NEW FIELDS FOR DETAILED CONTENT
     learningObjectives: [{
         type: String
     }],
@@ -64,6 +99,7 @@ const CourseSchema = new Schema({
         type: String
     }],
     lessons: [LessonSchema],
+    materials: [MaterialSchema],
     createdAt: {
         type: Date,
         default: Date.now

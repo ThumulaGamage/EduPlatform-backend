@@ -5,6 +5,10 @@ const { verifyToken, isAdmin, isTeacher } = require("../Controllers/AuthControll
 
 // Public routes (no authentication needed)
 router.get("/", CourseController.getAllCourses);
+
+// Get logged-in teacher's own courses - ADD THIS BEFORE other routes
+router.get("/teacher", verifyToken, CourseController.getTeacherCourses);
+
 router.get("/teacher/:teacherId", CourseController.getCoursesByTeacher);
 router.get("/:id", CourseController.getCourseById);
 

@@ -230,6 +230,28 @@ const updateProgress = async (req, res) => {
     }
 };
 
+const getEnrollmentsByCourse = async (req, res) => {
+    const { courseId } = req.params;
+
+    try {
+        const enrollments = await Enrollment.find({ courseId })
+            .populate('studentId', 'name gmail')
+            .populate('courseId', 'title')
+            .sort({ enrollmentDate: -1 });
+
+        return res.status(200).json({ 
+            enrollments,
+            total: enrollments.length,
+            approved: enrollments.filter(e => e.status === 'approved').length,
+            pending: enrollments.filter(e => e.status === 'pending').length,
+            rejected: enrollments.filter(e => e.status === 'rejected').length
+        });
+    } catch (err) {
+        console.error("Error fetching course enrollments:", err);
+        return res.status(500).json({ error: "Failed to fetch enrollments" });
+    }
+};
+
 module.exports = {
     requestEnrollment,
     getMyEnrollments,
@@ -237,5 +259,7 @@ module.exports = {
     getMyStudents,
     approveEnrollment,
     rejectEnrollment,
-    updateProgress
+    updateProgress,
+    getMyEnrollments,
+    getEnrollmentsByCourse,
 };

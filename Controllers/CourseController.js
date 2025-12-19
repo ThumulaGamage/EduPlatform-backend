@@ -1,4 +1,4 @@
-// Controllers/CourseController.js - UPDATED to return all fields
+// Controllers/CourseController.js - UPDATED with getTeacherCourses
 const Course = require("../Models/CourseModel");
 const User = require("../Models/UserModel");
 
@@ -29,6 +29,25 @@ const getCoursesByTeacher = async (req, res) => {
     } catch (err) {
         console.log(err);
         return res.status(500).json({ error: "Server error" });
+    }
+};
+
+// GET all courses for logged-in teacher - NEW FUNCTION
+const getTeacherCourses = async (req, res) => {
+    const teacherId = req.userId; // From verifyToken middleware
+
+    try {
+        const courses = await Course.find({ teacherId })
+            .populate('teacherId', 'name gmail')
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({ 
+            courses,
+            count: courses.length
+        });
+    } catch (err) {
+        console.error("Error fetching teacher courses:", err);
+        return res.status(500).json({ error: "Failed to fetch courses" });
     }
 };
 
@@ -233,6 +252,7 @@ const deleteCourse = async (req, res) => {
 module.exports = {
     getAllCourses,
     getCoursesByTeacher,
+    getTeacherCourses,  // ← ADDED THIS
     getCourseById,
     createCourse,
     updateCourse,

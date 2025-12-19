@@ -10,6 +10,11 @@ router.get("/my-enrollments", verifyToken, isStudent, EnrollmentController.getMy
 // Teacher routes - these create /enrollments/pending and /enrollments/my-students
 router.get("/pending", verifyToken, isTeacher, EnrollmentController.getPendingEnrollments);
 router.get("/my-students", verifyToken, isTeacher, EnrollmentController.getMyStudents);
+
+// NEW: Get enrollments for a specific course (for student count - public)
+router.get("/course/:courseId", EnrollmentController.getEnrollmentsByCourse);
+
+// Approval/Rejection routes
 router.put("/:id/approve", verifyToken, isTeacher, EnrollmentController.approveEnrollment);
 router.put("/:id/reject", verifyToken, isTeacher, EnrollmentController.rejectEnrollment);
 
