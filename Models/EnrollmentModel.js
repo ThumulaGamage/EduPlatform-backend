@@ -35,8 +35,17 @@ const EnrollmentSchema = new Schema({
     rejectedDate: {
         type: Date,
         default: null
-    }
+    },
+  // NEW FIELD - Add this:
+  completedLessons: {
+    type: [String], // Array of lesson IDs (as strings)
+    default: []
+  },
+  
+  }, {
+  timestamps: true
 });
+
 
 // Compound index to prevent duplicate enrollments
 EnrollmentSchema.index({ studentId: 1, courseId: 1 }, { unique: true });

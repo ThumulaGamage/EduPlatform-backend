@@ -3,6 +3,8 @@ const router = express.Router();
 const EnrollmentController = require("../Controllers/EnrollmentController");
 const { verifyToken, isStudent, isTeacher } = require("../Controllers/AuthController");
 
+
+
 // Student routes - these create /enrollments/request and /enrollments/my-enrollments
 router.post("/request", verifyToken, isStudent, EnrollmentController.requestEnrollment);
 router.get("/my-enrollments", verifyToken, isStudent, EnrollmentController.getMyEnrollments);
@@ -21,6 +23,12 @@ router.put("/:id/reject", verifyToken, isTeacher, EnrollmentController.rejectEnr
 // Both teacher and student can update progress
 router.put("/:id/progress", verifyToken, EnrollmentController.updateProgress);
 
+// NEW ROUTES FOR LESSON COMPLETION
+router.put("/:id/complete-lesson", verifyToken, EnrollmentController.completeLesson);
+router.put("/:id/uncomplete-lesson", verifyToken, EnrollmentController.uncompleteLesson);
+
 console.log('✅ EnrollmentRoutes loaded');
+
+
 
 module.exports = router;

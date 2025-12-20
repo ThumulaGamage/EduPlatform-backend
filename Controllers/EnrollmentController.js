@@ -252,6 +252,100 @@ const getEnrollmentsByCourse = async (req, res) => {
     }
 };
 
+// Complete a lesson
+const completeLesson = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { lessonId } = req.body;
+    const userId = req.userId; // Changed from req.user.id to req.userId
+
+    const enrollment = await Enrollment.findById(id);
+    
+    if (!enrollment) {
+      return res.status(404).json({ message: "Enrollment not found" });
+    }
+
+    if (enrollment.studentId.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (!enrollment.completedLessons) {
+      enrollment.completedLessons = [];
+    }
+
+    if (enrollment.completedLessons.includes(lessonId)) {
+      return res.status(400).json({ message: "Lesson already completed" });
+    }
+
+    enrollment.completedLessons.push(lessonId);
+
+    const course = await Course.findById(enrollment.courseId);
+    
+    if (course && course.lessons && course.lessons.length > 0) {
+      const totalLessons = course.lessons.length;
+      const completedCount = enrollment.completedLessons.length;
+      enrollment.progress = Math.round((completedCount / totalLessons) * 100);
+    }
+
+    await enrollment.save();
+
+    res.status(200).json({
+      message: "Lesson completed successfully",
+      enrollment: enrollment
+    });
+
+  } catch (error) {
+    console.error("Error completing lesson:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Uncomplete a lesson
+const uncompleteLesson = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { lessonId } = req.body;
+    const userId = req.userId; // Changed from req.user.id to req.userId
+
+    const enrollment = await Enrollment.findById(id);
+    
+    if (!enrollment) {
+      return res.status(404).json({ message: "Enrollment not found" });
+    }
+
+    if (enrollment.studentId.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (!enrollment.completedLessons) {
+      enrollment.completedLessons = [];
+    }
+
+    enrollment.completedLessons = enrollment.completedLessons.filter(
+      id => id.toString() !== lessonId
+    );
+
+    const course = await Course.findById(enrollment.courseId);
+    
+    if (course && course.lessons && course.lessons.length > 0) {
+      const totalLessons = course.lessons.length;
+      const completedCount = enrollment.completedLessons.length;
+      enrollment.progress = Math.round((completedCount / totalLessons) * 100);
+    }
+
+    await enrollment.save();
+
+    res.status(200).json({
+      message: "Lesson marked as incomplete",
+      enrollment: enrollment
+    });
+
+  } catch (error) {
+    console.error("Error uncompleting lesson:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 module.exports = {
     requestEnrollment,
     getMyEnrollments,
@@ -260,6 +354,7 @@ module.exports = {
     approveEnrollment,
     rejectEnrollment,
     updateProgress,
-    getMyEnrollments,
     getEnrollmentsByCourse,
+    completeLesson,
+    uncompleteLesson
 };
