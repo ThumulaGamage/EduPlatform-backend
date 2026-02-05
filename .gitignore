@@ -8,10 +8,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Environment variables
-.env
-.env.local
-.env.development
-.env.production
 
 # Build output
 /dist
@@ -29,5 +25,5 @@ pnpm-debug.log*
 Thumbs.db
 
 # IDE files
-.vscode/
 .idea/
+config.bat
