@@ -14,6 +14,26 @@ const messageRouter = require("./Routes/MessageRoutes");
 const reviewRouter = require("./Routes/ReviewRoutes");
 const materialRouter = require("./Routes/MaterialRoutes");
 
+console.log('🔍 About to load assignment routes...');
+let assignmentRoutesLoaded;
+let submissionRoutesLoaded;
+
+try {
+  assignmentRoutesLoaded = require('./Routes/assignmentRoutes');
+  console.log('✅ assignmentRoutes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading assignmentRoutes:', error.message);
+  console.error(error);
+}
+
+try {
+  submissionRoutesLoaded = require('./Routes/submissionRoutes');
+  console.log('✅ submissionRoutes loaded successfully');
+} catch (error) {
+  console.error('❌ Error loading submissionRoutes:', error.message);
+  console.error(error);
+}
+
 const app = express();
 
 // Middleware
@@ -41,6 +61,16 @@ app.use("/teachers", teacherRouter);
 app.use("/messages", messageRouter);
 app.use("/reviews", reviewRouter);
 app.use("/materials", materialRouter);
+
+if (assignmentRoutesLoaded) {
+  app.use('/api/assignments', assignmentRoutesLoaded);
+  console.log('🚀 Assignment routes registered');
+}
+
+if (submissionRoutesLoaded) {
+  app.use('/api/submissions', submissionRoutesLoaded);
+  console.log('🚀 Submission routes registered');
+}
 
 // Default route
 app.get("/", (req, res) => {
